@@ -40,7 +40,7 @@ saturn    = Planet("Saturn",  sun, int(0.287*SYSTEM_SIZE),     int(29.46*BASE_PL
 uranus   = Planet("Uranus",  sun, int(0.576*SYSTEM_SIZE),     int(84.01*BASE_PLANET_TIME), 2.5, 'cyan', 120)
 neptune   = Planet("Neptune", sun, int(0.900*SYSTEM_SIZE),     int(164.8*BASE_PLANET_TIME), 1-0, 'blue', int(3.86*28))
 
-satellite = Satellite("GeoStationary Observer", earth, SATELLITE_ORBIT, SATELLITE_ORBIT_TIME, SATELLITE_INITAL_ANGLE, 'white', SATELLITE_SIZE)
+satellite = Satellite("GeoStationary Observer, IDA", earth, SATELLITE_ORBIT, SATELLITE_ORBIT_TIME, SATELLITE_INITAL_ANGLE, 'white', SATELLITE_SIZE)
 
 ORBITAL_BODIES = [sun, mercury, venus, satellite, earth, mars, jupiter, saturn, uranus, neptune]
 
