@@ -1,13 +1,28 @@
 import numpy as np
 
+class Star():
+    def __init__(self, name, color, size):
+        self.name  = name
+        self.color = color
+        self.size  = size
+        # Inital position
+        self.position = np.array([0, 0])
+    
+    def update_position(self, _):
+        pass
+
 class Orbital_body():
-    def __init__(self, name, orbit_radius, orbital_period):
+    def __init__(self, name, center, orbit_radius, orbital_period, initial_angle, color, size):
         self.name           = name
+        self.center         = center
         self.orbit_radius   = orbit_radius      # Kilometers
         self.orbital_period = orbital_period    # Seconds
         self.orbital_speed  = self.calculate_orbital_speed()
+        self.color          = color 
+        self.size           = size
         # Initial position
-        self.position = np.array([np.cos(0) * orbit_radius, np.sin(0) * orbit_radius])
+        self.initial_angle  = initial_angle
+        self.position = np.array([np.cos(initial_angle) * orbit_radius, np.sin(initial_angle) * orbit_radius])
 
     def calculate_orbital_speed(self):
         # Calculate orbital speed based on the orbital period
@@ -15,15 +30,15 @@ class Orbital_body():
     
     def update_position(self, time_step):
         # Update position based on the current time step
-        angle = self.orbital_speed * time_step
-        self.position = np.array([np.cos(angle) * self.orbit_radius, np.sin(angle) * self.orbit_radius])
+        angle = self.initial_angle + self.orbital_speed * time_step
+        self.position = self.center.position + np.array([np.cos(angle) * self.orbit_radius, np.sin(angle) * self.orbit_radius])
     
     def print_position(self):
         print(f"{self.name} Position: {self.position}")
 
 class Planet(Orbital_body):
-    def __init__(self, name, orbit_radius, orbital_period):
-        super().__init__(name, orbit_radius, orbital_period)
+    def __init__(self, name, center, orbit_radius, orbital_period, initial_angle, color, size):
+        super().__init__(name, center, orbit_radius, orbital_period, initial_angle, color, size)
 
     def calculate_orbital_speed(self):
         return super().calculate_orbital_speed()
@@ -35,8 +50,8 @@ class Planet(Orbital_body):
         return super().print_position()
 
 class Satellite(Orbital_body):
-    def __init__(self, name, orbit_radius, orbital_period):
-        super().__init__(name, orbit_radius, orbital_period)
+    def __init__(self, name, center, orbit_radius, orbital_period, initial_angle, color, size):
+        super().__init__(name, center, orbit_radius, orbital_period, initial_angle, color, size)
         # SYSTEM STATS
         self.power_level = 100              # Percentage
         self.temperature = 20               # Celsius
