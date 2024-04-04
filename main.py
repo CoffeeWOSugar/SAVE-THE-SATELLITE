@@ -1,6 +1,7 @@
 import numpy as np
 import time
-from Orbital_bodies import Satellite, Planet, Star
+from Orbital_bodies import Planet, Star
+import Satellite
 import Terminal_tools as tt
 import Solar_system as ssys
 

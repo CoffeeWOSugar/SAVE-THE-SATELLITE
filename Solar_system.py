@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from Orbital_bodies import Planet, Satellite
+from Orbital_bodies import Planet
+import Satellite
 
 class SolarSystem:
     def __init__(self, bodies, system_size):
@@ -11,7 +12,7 @@ class SolarSystem:
         """
         self.time         = 0
         self.system_size  = int(system_size)
-        self.bodies      = bodies
+        self.bodies       = bodies
         self.fig, self.ax = plt.subplots()
     
     def init_plot(self):
