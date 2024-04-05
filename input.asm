@@ -1,3 +1,4 @@
+# TEST FILE
 LOAD A 10
 LOAD B 5
 ADD A B         # A = A + B -> A = 10 + 5

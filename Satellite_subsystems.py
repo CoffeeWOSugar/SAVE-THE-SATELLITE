@@ -12,17 +12,34 @@ class CPU_simulator:
         self.syscall_list = []  # Simple list in order to ensure a time-slot of delay for syscalls
 
         # Initialize subsystems
-        power_management = Power_management()
-        coms_system      = Communication_system()
-        self.subsystems  = {
+        power_management  = Power_management()
+        coms_system       = Communication_system()
+        navigation_system = Navigation_system()
+        data_collection   = Data_collection()
+        thermal_control   = Thermal_control()
+        mag_coil_storage  = Mag_coil_storage()
+        self.subsytem   = {
             0: power_management,
             1: coms_system,
-            #2: navigation_control,
-            #3: data_collection,
-            #4: thermal_control,
-            #5: mag_coil_storage,
+            2: navigation_system,
+            3: data_collection,
+            4: thermal_control,
+            5: mag_coil_storage,
             #6: 
         }
+        self.subsytem_power = {
+            0: True,
+            1: False,
+            2: False,
+            3: False,
+            4: False,
+            5: False,
+            #6:
+        }
+        self.amount_of_subsystems = len(self.subsytem)
+
+    def load_main(self):
+        self.program = self.subsytem[5].programs["main.asm"]
 
     def load_program(self, program):
         """Load the program into the CPU."""
@@ -68,7 +85,6 @@ class CPU_simulator:
         #time.sleep(5) # TODO: DEBUG
         return instructions, labels
 
-
     def set_memory(self, key, value):
         """Set a value in memory, respecting the memory limit."""
         if key in self.memory or len(self.memory) < self.memory_limit:
@@ -79,11 +95,17 @@ class CPU_simulator:
     def syscall(self, value, subsystem_id):
         """Direct system calls to the appropriate subsystem based on the ID."""
         # Placeholder for subsystem interaction logic
-        subsystem = self.subsystems.get(subsystem_id)
+        subsystem = self.subsytem.get(subsystem_id)
         #print(subsystem) #TODO: DEBUG
         if subsystem:
-            # Tailor this part to match how you want to handle syscalls for each subsystem
-            if subsystem_id == 1:  # Communication Systems
+            
+            # Power management
+            if subsystem_id == 0:
+                if value >= 0 and value <= self.amount_of_subsystems:
+                    self.subsytem[0].toggle_subsystem_power(self, value)
+
+            # Communication systems
+            if subsystem_id == 1:  
                 if value == 0:
                     if subsystem.read_data() != 1:
                         print(f"Error in subsystem{subsystem_id}")
@@ -94,6 +116,17 @@ class CPU_simulator:
                     # TODO: MAYBE SAVE WHERE YOU WERE USING THE STACK...
                 else:
                     print(f"") # TODO: What?----
+
+            # Magnetic coils storage
+            elif subsystem_id == 5: # TODO: NOT TESTED
+                if value >= 0 and value <= 9:
+                    """Load program from Communications Systems into magnetic coil pos 0"""
+                    self.subsytem[5].load_from_communication_system(value, self.subsytem[1])
+                elif value <= 19:
+                    """Load program from mag coil storage"""
+                    self.program = self.subsytem[5].get_from_Mag_coil_storage(value)
+                    self.pc = -1 # Set to -1 since pc will increment after returning.
+
             # Add handling for other subsystems...
         else:
             print(f"Subsystem {subsystem_id} not found.")
@@ -144,19 +177,37 @@ class CPU_simulator:
             
             self.pc += 1  # Move to the next instruction unless JMP changes it
 
-
     def run(self):
         """Convenience method to execute the program."""
-        self.execute_program()
+        if len(self.program) > 0:
+            self.execute_program()
+        else:
+            self.load_main()
+            self.execute_program()
 
 class Power_management:
     def __init__(self):
         self.power_level = 100  # Initial power level
+        self.max_power_level = 100
+        self.min_power_level = 20
         self.power_saving_mode = False
 
     def adjust_power(self, adjustment):
-        self.power_level += adjustment
-        self.power_level = min(max(self.power_level, 0), 100)  # Keep within 0-100
+        new__power_level = self.power_level + adjustment
+        if new__power_level < self.max_power_level and new__power_level > self.min_power_level:
+            self.power_level = new__power_level
+            return 1
+        else:
+            return 0
+
+    def toggle_subsystem_power(self, computer, arg):
+        computer.subsystem_power[arg] = not computer.subsystem.power[arg] # TODO: Maybe save the power state as a dict in the main class.
+        sucess = 0
+        if computer.subsystem_power:
+            sucess = self.adjust_power(20)
+        else:
+            sucess = self.adjust_power(-20)
+        return sucess
 
     def toggle_power_saving(self):
         self.power_saving_mode = not self.power_saving_mode
@@ -166,7 +217,7 @@ class Communication_system:
         # Initialize any necessary variables
         self.received_program = []
 
-    def read_data(self, filepath='input.txt'):
+    def read_data(self, filepath='input.asm'):
         """Reads a program from a file, strips comments, and stores it for execution."""
         try:
             with open(filepath, 'r') as file:
@@ -192,10 +243,31 @@ class Communication_system:
             return line[:comment_index].strip()
         return line.strip()
     
+class Navigation_system:
+    def __init__(self):
+        pass
+
+class Data_collection:
+    def __init__(self):
+        pass
+
+class Thermal_control:
+    def __init__(self):
+        pass
+
 class Mag_coil_storage:
     def __init__(self):
-        self.programs = {}
+        self.programs = {
+            "main.asm" : ["LOAD A 0","SYSCALL A 1", "LOAD A 1", "SYSCALL A 1"],
+            "0" : []
+        }
+    
+    def load_from_communication_system(self, arg, com_sys):
+        self.programs[str(arg)] = com_sys.program()
 
-cpu = CPU_simulator()
-cpu.load_program(["LOAD A 0","SYSCALL A 1", "LOAD A 1", "SYSCALL A 1"])
-cpu.run()
+    def get_from_Mag_coil_storage(self, arg):
+        return self.programs.get(str(arg))
+
+if __name__ == "__main__":
+    cpu = CPU_simulator()
+    cpu.run()
